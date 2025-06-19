@@ -1,6 +1,6 @@
 # 🎬 智能电影推荐系统
 
-一个基于多种算法的现代化电影推荐系统，经过完全模块化重构，提供高质量的个性化推荐体验。
+一个基于多种算法的现代化电影推荐
 
 ## ✨ 主要特性
 
@@ -10,6 +10,7 @@
 - **🔄 混合推荐**: 融合多种算法的综合推荐系统
 - **📊 可视化分析**: 丰富的数据可视化和推荐结果展示
 - **🎮 交互式界面**: 用户友好的命令行交互体验
+- **🌐 Web界面**: 现代化的Web用户界面，支持在线推荐和搜索
 
 ## 🏗️ 项目结构 (重构后)
 
@@ -25,8 +26,22 @@ movie-recommendation-system-code/
 │   │   └── hybrid.py          # 混合推荐系统
 │   └── 📁 utils/              # 工具模块
 │       └── utils.py           # 可视化、评估、日志工具
+├── 📁 templates/              # Web界面模板
+│   ├── base.html              # 基础模板
+│   ├── index.html             # 主页
+│   ├── movie_detail.html      # 电影详情页
+│   └── 404.html               # 错误页面
+├── 📁 static/                 # 静态资源
+│   ├── 📁 css/               # 样式文件
+│   │   └── style.css         # 主样式
+│   └── 📁 js/                # JavaScript文件
+│       ├── main.js           # 主要功能
+│       └── index.js          # 首页功能
+├── 📄 app.py                  # Web应用主文件
+├── 📄 web_config.py           # Web配置文件
+├── 📄 run_web.py              # Web启动脚本
 ├── 📄 config.py               # 配置管理
-├── 📄 main.py                 # 主程序入口 (全新设计)
+├── 📄 main.py                 # 命令行程序入口
 ├── 📄 requirements.txt        # 依赖包管理
 └── 📄 README.md              # 项目文档
 ```
@@ -44,9 +59,22 @@ pip install -r requirements.txt
 ```
 
 ### 2. 运行系统
+
+#### 🖥️ 命令行界面
 ```bash
 python main.py
 ```
+
+#### 🌐 Web界面
+```bash
+# 方法1: 使用启动脚本 (推荐)
+python run_web.py
+
+# 方法2: 直接运行Flask应用
+python app.py
+```
+
+Web界面将在 http://localhost:5000 启动
 
 ### 3. 体验功能
 程序将自动：

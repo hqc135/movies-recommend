@@ -8,6 +8,18 @@ try:
     import tensorflow as tf
     from tensorflow import keras
     TENSORFLOW_AVAILABLE = True
+    
+    # 配置GPU
+    physical_devices = tf.config.list_physical_devices('GPU')
+    if len(physical_devices) > 0:
+        print(f"找到 {len(physical_devices)} 个GPU设备")
+        # 启用GPU内存增长，避免占用所有GPU内存
+        for device in physical_devices:
+            tf.config.experimental.set_memory_growth(device, True)
+        print("GPU配置完成，启用内存增长模式")
+    else:
+        print("未检测到GPU设备，将使用CPU进行计算")
+        
 except ImportError:
     TENSORFLOW_AVAILABLE = False
     print("警告: TensorFlow未安装，深度学习功能将不可用")
@@ -24,7 +36,7 @@ class DeepLearningRecommender:
     """基于神经网络的电影推荐系统"""
     
     def __init__(self, embedding_size: int = 50, hidden_units: Optional[List[int]] = None, 
-                 learning_rate: float = 0.001, dropout_rate: float = 0.2):
+                 learning_rate: float = 0.001, dropout_rate: float = 0.2, use_mixed_precision: bool = True):
         """
         初始化深度学习推荐器
         
@@ -33,14 +45,22 @@ class DeepLearningRecommender:
             hidden_units: 隐藏层单元数列表
             learning_rate: 学习率
             dropout_rate: Dropout比率
+            use_mixed_precision: 是否使用混合精度训练(GPU加速)
         """
         if not TENSORFLOW_AVAILABLE:
             raise ImportError("需要安装TensorFlow才能使用深度学习推荐器")
+        
+        # 配置混合精度训练
+        if use_mixed_precision and len(tf.config.list_physical_devices('GPU')) > 0:
+            policy = tf.keras.mixed_precision.Policy('mixed_float16')
+            tf.keras.mixed_precision.set_global_policy(policy)
+            print("启用混合精度训练以提高GPU性能")
             
         self.embedding_size = embedding_size
         self.hidden_units = hidden_units if hidden_units is not None else [128, 64, 32]
         self.learning_rate = learning_rate
         self.dropout_rate = dropout_rate
+        self.use_mixed_precision = use_mixed_precision
         
         self.model = None
         self.user_encoder = LabelEncoder()
@@ -49,7 +69,32 @@ class DeepLearningRecommender:
         
         # 设置随机种子以保证结果可重复
         tf.random.set_seed(42)
-        np.random.seed(42)
+        
+        # 显示GPU状态
+        self.print_gpu_status()
+    
+    def print_gpu_status(self):
+        """显示GPU状态信息"""
+        print("\n=== GPU状态信息 ===")
+        physical_devices = tf.config.list_physical_devices('GPU')
+        if len(physical_devices) > 0:
+            print(f"可用GPU数量: {len(physical_devices)}")
+            for i, device in enumerate(physical_devices):
+                print(f"GPU {i}: {device}")
+                # 检查GPU内存信息
+                try:
+                    memory_info = tf.config.experimental.get_memory_info(device.name.replace('/physical_device:', '/device:'))
+                    print(f"  当前内存使用: {memory_info['current'] / 1024**3:.2f} GB")
+                    print(f"  峰值内存使用: {memory_info['peak'] / 1024**3:.2f} GB")
+                except:
+                    print(f"  无法获取内存信息")
+            
+            # 检查混合精度状态
+            policy = tf.keras.mixed_precision.global_policy()
+            print(f"混合精度策略: {policy.name}")
+        else:
+            print("未检测到GPU设备，使用CPU计算")
+        print("==================\n")
         
     def prepare_interaction_data(self, movies_df: pd.DataFrame, min_interactions: int = 5) -> pd.DataFrame:
         """
@@ -156,16 +201,24 @@ class DeepLearningRecommender:
             )(dense)
             dense = keras.layers.BatchNormalization(name=f'batch_norm_{i+1}')(dense)
             dense = keras.layers.Dropout(self.dropout_rate, name=f'dropout_{i+1}')(dense)
-        
-        # 输出层
-        output = keras.layers.Dense(1, activation='linear', name='rating_output')(dense)
+          # 输出层
+        if self.use_mixed_precision:
+            # 混合精度模式下，输出层需要使用float32
+            output = keras.layers.Dense(1, activation='linear', name='rating_output', dtype='float32')(dense)
+        else:
+            output = keras.layers.Dense(1, activation='linear', name='rating_output')(dense)
         
         # 创建模型
         model = keras.Model(inputs=[user_input, movie_input], outputs=output)
         
         # 编译模型
+        optimizer = keras.optimizers.Adam(learning_rate=self.learning_rate)
+        if self.use_mixed_precision:
+            # 混合精度训练需要使用LossScaleOptimizer
+            optimizer = keras.mixed_precision.LossScaleOptimizer(optimizer)
+            
         model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=self.learning_rate),
+            optimizer=optimizer,
             loss='mse',
             metrics=['mae', 'mse']
         )
@@ -174,6 +227,41 @@ class DeepLearningRecommender:
         logger.info("模型构建完成")
         
         return model
+    
+    def fit(self, movies_df: pd.DataFrame, epochs: int = 30, 
+            min_interactions: int = 5) -> None:
+        """
+        训练深度学习推荐器
+        
+        Args:
+            movies_df: 电影数据框
+            epochs: 训练轮数
+            min_interactions: 最小交互数
+        """
+        try:
+            logger.info("开始训练深度学习推荐器...")
+            
+            # 准备交互数据
+            interactions_df = self.prepare_interaction_data(movies_df, min_interactions)
+            
+            # 编码用户和电影ID
+            interactions_df['user_encoded'] = self.user_encoder.fit_transform(interactions_df['user_id'])
+            interactions_df['movie_encoded'] = self.movie_encoder.fit_transform(interactions_df['movie_id'])
+            
+            # 构建模型
+            num_users = len(self.user_encoder.classes_)
+            num_movies = len(self.movie_encoder.classes_)
+            self.build_model(num_users, num_movies)
+            
+            # 训练模型
+            self.train(interactions_df, epochs=epochs, batch_size=128, validation_split=0.1)
+            
+            logger.info("深度学习推荐器训练完成")
+            
+        except Exception as e:
+            logger.warning(f"深度学习推荐器训练失败: {e}")
+            logger.info("将禁用深度学习功能")
+            self.model = None
     
     def train(self, interactions_df: pd.DataFrame, epochs: int = 50, 
               batch_size: int = 256, validation_split: float = 0.2,

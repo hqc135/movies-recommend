@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}页面未找到 - 电影推荐系统{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="error-page">
+                <i class="fas fa-film-slash fa-5x text-muted mb-4"></i>
+                <h1 class="display-1 fw-bold text-primary">404</h1>
+                <h2 class="mb-4">电影未找到</h2>
+                <p class="lead text-muted mb-4">
+                    抱歉，我们找不到您要查看的电影。可能是电影标题输入错误，或者该电影不在我们的数据库中。
+                </p>
+                <div class="d-grid gap-2 d-md-flex justify-content-center">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary me-md-2">
+                        <i class="fas fa-home me-2"></i>返回首页
+                    </a>
+                    <button class="btn btn-outline-secondary" onclick="history.back()">
+                        <i class="fas fa-arrow-left me-2"></i>返回上页
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
