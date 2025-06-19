@@ -1,0 +1,22 @@
+# 电影推荐系统依赖包
+
+# 基础数据处理
+numpy>=1.21.0
+pandas>=1.3.0
+matplotlib>=3.4.0
+
+# 机器学习
+scikit-learn>=1.0.0
+
+# 深度学习
+tensorflow>=2.8.0
+# 或者使用 tensorflow-cpu 如果没有GPU
+# tensorflow-cpu>=2.8.0
+
+# 可选：用于更好的可视化
+seaborn>=0.11.0
+plotly>=5.0.0
+
+# 可选：用于Jupyter Notebook
+jupyter>=1.0.0
+ipykernel>=6.0.0
