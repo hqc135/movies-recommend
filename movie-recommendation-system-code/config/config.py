@@ -5,12 +5,16 @@ import os
 
 class Config:
     """项目配置类"""
-    
-    # ======================== 数据路径配置 ========================
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_PATH = "C:/Users/18304/OneDrive - whu.edu.cn/桌面/movies recommend/archive"
+      # ======================== 数据路径配置 ========================
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    DATA_PATH = os.path.join(BASE_DIR, "data", "raw")
+    PROCESSED_DATA_PATH = os.path.join(BASE_DIR, "data", "processed")
     MOVIES_FILE = os.path.join(DATA_PATH, "tmdb_5000_movies.csv")
     CREDITS_FILE = os.path.join(DATA_PATH, "tmdb_5000_credits.csv")
+    
+    # ======================== 模型和日志路径 ========================
+    MODELS_PATH = os.path.join(BASE_DIR, "models")
+    LOGS_PATH = os.path.join(BASE_DIR, "logs")
     
     # ======================== 模型参数配置 ========================
     # 深度学习模型参数
