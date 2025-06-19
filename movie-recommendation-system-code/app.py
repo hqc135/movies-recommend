@@ -16,6 +16,7 @@ from datetime import datetime
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from config import Config
+
 from src.data.data_loader import DataLoader
 from src.recommenders.demographic import DemographicRecommender
 from src.recommenders.content_based import ContentBasedRecommender

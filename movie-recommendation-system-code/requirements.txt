@@ -21,6 +21,4 @@ tensorflow>=2.10.0
 seaborn>=0.11.0
 plotly>=5.0.0
 
-# 可选：用于Jupyter Notebook
-jupyter>=1.0.0
-ipykernel>=6.0.0
+

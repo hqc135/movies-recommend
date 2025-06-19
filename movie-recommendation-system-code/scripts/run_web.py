@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 # 添加项目根目录到Python路径
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 def check_dependencies():
@@ -41,28 +41,32 @@ def check_dependencies():
 
 def check_data_files():
     """检查数据文件是否存在"""
-    from config import Config
-    
-    config = Config()
-    data_files = [
-        (config.MOVIES_FILE, "电影数据文件"),
-        (config.CREDITS_FILE, "演职人员数据文件")
-    ]
-    
-    missing_files = []
-    
-    for file_path, description in data_files:
-        if not os.path.exists(file_path):
-            missing_files.append((file_path, description))
-    
-    if missing_files:
-        print("❌ 缺少以下数据文件:")
-        for file_path, description in missing_files:
-            print(f"   - {description}: {file_path}")
-        print("\n请确保数据文件存在于正确的路径中")
+    try:
+        from config import Config
+        
+        config = Config()
+        data_files = [
+            (config.MOVIES_FILE, "电影数据文件"),
+            (config.CREDITS_FILE, "演职人员数据文件")
+        ]
+        
+        missing_files = []
+        
+        for file_path, description in data_files:
+            if not os.path.exists(file_path):
+                missing_files.append((file_path, description))
+        
+        if missing_files:
+            print("❌ 缺少以下数据文件:")
+            for file_path, description in missing_files:
+                print(f"   - {description}: {file_path}")
+            print("\n请确保数据文件存在于正确的路径中")
+            return False
+        
+        return True
+    except ImportError as e:
+        print(f"❌ 导入配置文件失败: {e}")
         return False
-    
-    return True
 
 def main():
     """主函数"""

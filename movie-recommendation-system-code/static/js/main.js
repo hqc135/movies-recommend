@@ -12,7 +12,27 @@ $(document).ready(function() {
     
     // 绑定其他事件
     bindUIEvents();
+    
+    // 首页特有功能
+    if ($('.hero-section').length > 0) {
+        initializeHomePage();
+    }
 });
+
+// 首页初始化功能
+function initializeHomePage() {
+    // Hero区域动画效果
+    animateHeroSection();
+    
+    // 功能卡片增强
+    enhanceFeatureCards();
+    
+    // 滚动效果
+    addScrollEffects();
+    
+    // 键盘快捷键
+    bindKeyboardShortcuts();
+}
 
 // 检查系统状态
 function checkSystemStatus() {
@@ -406,4 +426,107 @@ function formatNumber(num) {
 function truncateText(text, maxLength) {
     if (!text) return '';
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+}
+
+// 添加动态效果
+function addDynamicEffects() {
+    // Hero区域动画
+    animateHeroSection();
+    
+    // 功能卡片悬停效果
+    enhanceFeatureCards();
+}
+
+// Hero区域动画
+function animateHeroSection() {
+    const heroIcon = $('.hero-icon');
+    
+    // 鼠标移动效果
+    $('.hero-section').on('mousemove', function(e) {
+        const x = (e.pageX - $(this).offset().left) / $(this).width();
+        const y = (e.pageY - $(this).offset().top) / $(this).height();
+        
+        heroIcon.css({
+            'transform': `translate(${x * 20 - 10}px, ${y * 20 - 10}px) rotateY(${x * 20 - 10}deg)`
+        });
+    });
+    
+    // 鼠标离开时重置
+    $('.hero-section').on('mouseleave', function() {
+        heroIcon.css({
+            'transform': 'translate(0, 0) rotateY(0deg)'
+        });
+    });
+}
+
+// 增强功能卡片
+function enhanceFeatureCards() {
+    $('.feature-card').each(function(index) {
+        const card = $(this);
+        
+        // 延迟显示动画
+        setTimeout(() => {
+            card.addClass('fade-in');
+        }, index * 200);
+        
+        // 3D倾斜效果
+        card.on('mouseenter', function(e) {
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (y - centerY) / 10;
+            const rotateY = (centerX - x) / 10;
+            
+            $(this).css({
+                'transform': `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`
+            });
+        });
+        
+        card.on('mouseleave', function() {
+            $(this).css({
+                'transform': 'perspective(1000px) rotateX(0) rotateY(0) translateZ(0)'
+            });
+        });
+    });
+}
+
+// 添加滚动效果
+function addScrollEffects() {
+    // 滚动时的视差效果
+    $(window).on('scroll', function() {
+        const scrollTop = $(this).scrollTop();
+        const heroSection = $('.hero-section');
+        
+        // 视差背景效果
+        heroSection.css({
+            'transform': `translateY(${scrollTop * 0.5}px)`
+        });
+        
+        // 导航栏背景透明度
+        const navbar = $('.navbar');
+        if (scrollTop > 100) {
+            navbar.addClass('scrolled');
+        } else {
+            navbar.removeClass('scrolled');
+        }
+    });
+}
+
+// 键盘快捷键
+function bindKeyboardShortcuts() {
+    $(document).on('keydown', function(e) {
+        // 按 '/' 键聚焦搜索框
+        if (e.key === '/' && !$(e.target).is('input, textarea')) {
+            e.preventDefault();
+            $('#searchInput').focus();
+        }
+        
+        // 按 Escape 键清除搜索
+        if (e.key === 'Escape') {
+            $('#searchInput').val('').blur();
+            hideSearchResults();
+        }
+    });
 }

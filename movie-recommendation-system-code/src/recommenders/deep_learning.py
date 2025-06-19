@@ -29,6 +29,13 @@ from sklearn.preprocessing import LabelEncoder
 from typing import List, Dict, Tuple, Optional
 import logging
 import matplotlib.pyplot as plt
+import sys
+import os
+
+# 添加项目根目录到路径
+project_root = os.path.join(os.path.dirname(__file__), '..', '..')
+sys.path.insert(0, project_root)
+from config import Config
 
 logger = logging.getLogger(__name__)
 
